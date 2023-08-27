@@ -1,0 +1,49 @@
+#!/bin/bash
+#set -x
+# https://www.linuxbabe.com/linux-server/how-to-enable-etcrc-local-with-systemd
+############## Service file start ####################
+#[Unit]
+# Description=/etc/rc.local Compatibility
+# ConditionPathExists=/etc/rc.local
+#
+#[Service]
+# Type=forking
+# ExecStart=/etc/rc.local start
+# TimeoutSec=0
+# StandardOutput=tty
+# RemainAfterExit=yes
+# SysVStartPriority=99
+#
+#[Install]
+# WantedBy=multi-user.target
+############## Service file end ####################
+
+# Increase your transaction queue length
+# and increase the eth device tx/rx buffers
+# Does not work with linode para-virt, must use full-virt
+ip link set dev enp1s0f0 txqueuelen 9000
+ip link set dev enp1s0f1 txqueuelen 9000
+
+ethtool -G enp1s0f0 tx 4096 rx 4096
+ethtool -G enp1s0f1 tx 4096 rx 4096
+
+#Set Read ahead
+for i in {0..4}
+do
+        blockdev --setra 4096 /dev/nvme${i}n1
+
+done
+
+# Ensure sysctl settings are set
+sysctl -p
+
+# Set CPU performance
+for i in {0..71}
+do
+    echo -n "performance" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+    # Change all CPU's to 'performance'
+    echo -n 2 > /sys/devices/system/cpu/cpu$i/power/energy_perf_bias
+    # Change to 0-4, 0=Performance and 4=Balanced-Performance
+done
+
+exit 0
