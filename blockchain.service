@@ -1,0 +1,32 @@
+[Unit]
+Description=Blockchain Validator
+After=network.target
+
+[Service]
+Group=GROUP
+User=USER
+WorkingDirectory=/validator-home/blockchain
+#ExecStartPre=+/validator-home/stargaze/.local/bin/pre-checks-blockchaind.sh
+ExecStart=/validator-home/blockchain/go/bin/blockchaind start
+#ExecStartPost=+/validator-home/blockchain/.local/bin/post-checks-blockchaind.sh
+#Sockets=/dev/shm/blockchain/trpc.socket
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=30000
+#Set Nice below 0 to give higher process priorety
+Nice=-1
+# Set allowed CPU's to include 4 but keep CPU Affinity to 2
+# target set CPU's
+CPUAffinity=##### ASSIGN YOUR CPU'S HERE #####
+# IO Scheduling to realtime and high priority with first in first out
+IOSchedulingClass=realtime
+IOSchedulingPriority=##### CHOOSE A PRIORITY # 1 HIGHEST, 7 LOWEST #####
+CPUSchedulingPolicy=fifo
+# Enable the timeout if your blockchain doesn't start right away. This will ensure it's given the time to start rather than considered failed
+#TimeoutSec=500
+# Set Memory Limits
+#MemoryHigh=8000M
+MemoryMin=1000M
+
+[Install]
+WantedBy=multi-user.target
