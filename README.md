@@ -6,6 +6,15 @@ These are my current sysctl.conf tweaks.
 I highly ***recommend*** that before blinding applying these, as they could utterly fuck your server up, you need to ***research them*** and ensure you will be configuring them properly for your server.
 Google is your friend, a plethora of information about everything here will come up on page 1. If you are in need of help still, do not hesitate to submit a question in the Discussions section.
 
+- [Validator-sysctl-settings](#validator-sysctl-settings)
+- [Instructions](#instructions)
+  - [Linux Kernel](#linux-kernel)
+  - [Grub](#grub)
+  - [sysctl.conf](#sysctlconf)
+  - [rc.local](#rclocal)
+  - [service file template](#service-file-template)
+    - [Optional](#optional)
+  - [Blockchain config's](#blockchain-configs)
 
 # Instructions
 
@@ -20,6 +29,29 @@ Enable this by doing
 pro enable realtime-kernel
 ```
 
+## Grub
+Once you have the realtime-kernel installed, you can update your grub config to take more advantage of the kernel.
+We need to modify the parameter starting with `GRUB_CMDLINE_LINUX_DEFAULT=`
+If you have settings in there already, put these at the end. Keeping a space between settings.
+```bash
+skew_tick=1 rcu_nocb_poll rcu_nocbs=1-35,37-71 nohz=on nohz_full=1-35,37-71 kthread_cpus=0,36 irqaffinity=0,36 isolcpus=managed_irq,domain,1-35,37-71 intel_pstate=disable nosoftlockup tsc=nowatchdog
+```
+
+I have purposely left ***MY*** settings here to demonstrate what you will need to do to use this configuration.
+
+First, the goal here is to assign a cpu or two to handle certain tasks and restrict them so that they cannot be used for anything else. This happens with:
+- kthread_cpus
+- irqaffinity
+
+My server is a dual processor.  Each physical processor has 36 cpus.  What you want to do is take the first cpu from each physical processor, in my case 0 & 36.  CPU counts start from 0, not 1. Because we used 1 CPU from each Processor, we wont "overload" one with all the work.
+
+Now that you've determined which CPU's you will dedicate to the above two items, you can then fill out your remaining CPUs in:
+- rcu_nocbs
+- nohz_full
+- isolcpus
+
+1-35,37-71 translates to, cpu's 1 through 35 and 37 through 71.  Adjust this to fit your CPU count.
+
 ## sysctl.conf
 After pasting the tweaks into your `/etc/sysctl.conf`, issue the command `sysctl -p` to apply them.
 In your rc.local, add `sysctl -p` on an empty line and save. This ensures they are applied at boot.
@@ -30,6 +62,7 @@ awk 'BEGIN {OFMT = "%.0f";} /MemTotal/ {print "vm.min_free_kbytes =", $2 * .03;}
 ```
 I took this result and multiplied it by 5 and use that for my setting.
 
+There are quite a few items commented out. Those do not exist on my system but may on yours.  You can always check using the `sysctl` command.
 
 ## rc.local
 A few other tweaks can be made and applied at boot using the `rc.local` file.  By default, Ubuntu LTS does not have an rc.local enabled.  My current `rc.local` which includes a link for instructions on setting up your `rc.local` as well as the contents of what you need to have in your `rc-local.service` file

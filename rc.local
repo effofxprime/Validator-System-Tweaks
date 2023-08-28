@@ -28,9 +28,8 @@ ethtool -G enp1s0f0 tx 4096 rx 4096
 ethtool -G enp1s0f1 tx 4096 rx 4096
 
 #Set Read ahead
-for i in {0..4}
-do
-        blockdev --setra 4096 /dev/nvme${i}n1
+for i in {0..4}; do
+    blockdev --setra 4096 /dev/nvme${i}n1
 
 done
 
@@ -38,11 +37,10 @@ done
 sysctl -p
 
 # Set CPU performance
-for i in {0..71}
-do
-    echo -n "performance" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
+for i in {0..71}; do
+    echo -n "performance" >/sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
     # Change all CPU's to 'performance'
-    echo -n 2 > /sys/devices/system/cpu/cpu$i/power/energy_perf_bias
+    echo -n 0 >/sys/devices/system/cpu/cpu$i/power/energy_perf_bias
     # Change to 0-4, 0=Performance and 4=Balanced-Performance
 done
 
