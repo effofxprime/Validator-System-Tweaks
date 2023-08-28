@@ -17,6 +17,8 @@ To calculate the proper value for `vm.min_free_kbytes` run:
 ```bash
 awk 'BEGIN {OFMT = "%.0f";} /MemTotal/ {print "vm.min_free_kbytes =", $2 * .03;}' /proc/meminfo
 ```
+I took this result and multiplied it by 5 and use that for my setting.
+
 
 ## rc.local
 A few other tweaks can be made and applied at boot using the `rc.local` file.  By default, Ubuntu LTS does not have an rc.local enabled.  My current `rc.local` which includes a link for instructions on setting up your `rc.local` as well as the contents of what you need to have in your `rc-local.service` file
