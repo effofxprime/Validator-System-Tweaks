@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#Output to console
+#set -x
+
+if [ -e /dev/shm/blockchain/trpc.socket ]; then
+    rm /dev/shm/blockchain/*.socket
+fi
+
+#Create shared memory directory and give bze and www-data permissions
+
+if [ ! -e /dev/shm/blockchain ]; then
+    mkdir /dev/shm/blockchain
+fi
+
+setfacl -d -R -m u::rwX,g::rwX,o::- /dev/shm/blockchain
+chmod -R 2774 /dev/shm/blockchain/
+chown -h -R blockchain:www-data /dev/shm/blockchain
+
+exit 0
