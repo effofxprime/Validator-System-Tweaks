@@ -1,0 +1,156 @@
+# app.toml
+# Disable all API types. You are a validator, you most likely don't need them eating up IO/CPU
+
+###############################################################################
+###                           gRPC Configuration                            ###
+###############################################################################
+
+[grpc]
+
+# Enable defines if the gRPC server should be enabled.
+enable = false
+
+# Address defines the gRPC server address to bind to.
+address = "0.0.0.0:9090"
+
+###############################################################################
+###                        gRPC Web Configuration                           ###
+###############################################################################
+
+[grpc-web]
+
+# GRPCWebEnable defines if the gRPC-web should be enabled.
+# NOTE: gRPC must also be enabled, otherwise, this configuration is a no-op.
+enable = false
+
+# Address defines the gRPC-web server address to bind to.
+address = "0.0.0.0:9091"
+
+# EnableUnsafeCORS defines if CORS should be enabled (unsafe - use it at your own risk).
+enable-unsafe-cors = false
+
+
+
+# client.toml
+# Set the chain-id so you do not need to specify it when issuing commands.
+# If you use sockets or would rather use an external node for queries, set the `node` environment variable
+
+###############################################################################
+###                           Client Configuration                            ###
+###############################################################################
+
+# The network chain ID
+chain-id = "mainnet-1"
+# The keyring's backend, where the keys are stored (os|file|kwallet|pass|test|memory)
+keyring-backend = "os"
+# CLI output format (text|json)
+output = "text"
+# <host>:<port> to Tendermint RPC interface for this chain
+#node = "tcp://localhost:26657"
+node = "unix:///dev/shm/blockchain/trpc.socket"
+# Transaction broadcasting mode (sync|async|block)
+broadcast-mode = "sync"
+
+
+
+# config.toml
+# this one is a bit more "tricky"  Let me first give some recommendations from my experiences.
+# Define your EXTERNAL_ADDRESS!!!!
+# Stop using persistent peers if you can.  Use seed nodes, and have several if you can
+# lower timeouts/threshholds
+# Increase # chunks state sync downloads at once
+# Don't index for validators
+# MOST important: double_sign_check_height = 1  - You should use 1 or greater! I have no idea how this works with Horcrux, I run vanilla only
+# Consensus configuration options, if altered incorrectly, can cause you to double sign. We only modify the timeout/delta that is added when going through rounds
+
+
+#######################################################################
+###                   Main Base Config Options                      ###
+#######################################################################
+
+# TCP or UNIX socket address of the ABCI application,
+# or the name of an ABCI application compiled in with the Tendermint binary
+#proxy_app = "tcp://127.0.0.1:26658"
+proxy_app = "unix:///dev/shm/jackal/abci.socket"
+
+#######################################################
+###       RPC Server Configuration Options          ###
+#######################################################
+[rpc]
+
+# TCP or UNIX socket address for the RPC server to listen on
+#laddr = "tcp://127.0.0.1:26657"
+laddr = "unix:///dev/shm/jackal/trpc.socket"
+
+#######################################################
+###           P2P Configuration Options             ###
+#######################################################
+[p2p]
+
+# Address to listen for incoming connections
+laddr = "tcp://10.1.1.69:26616"
+
+# Address to advertise to peers for them to dial
+# If empty, will use the same port as the laddr,
+# and will introspect on the listener or use UPnP
+# to figure out the address. ip and port are required
+# example: 159.89.10.97:26656
+external_address = "thesilverfox.myddns.me:26616"
+
+# UPNP port forwarding
+upnp = false
+
+# Maximum number of inbound peers
+max_num_inbound_peers = 40
+
+# Maximum number of outbound peers to connect to, excluding persistent peers
+max_num_outbound_peers = 20
+
+# Time to wait before flushing messages out on the connection
+flush_throttle_timeout = "50ms"
+
+# Rate at which packets can be sent, in bytes/second
+# This can cause  you to use a LOT of bandwidth. Adjust this accordingly to each blockchain
+send_rate = 31120000
+
+# Rate at which packets can be received, in bytes/second
+# This can cause  you to use a LOT of bandwidth. Adjust this accordingly to each blockchain
+recv_rate = 31120000
+
+# Peer connection configuration.
+handshake_timeout = "10s"
+dial_timeout = "8s"
+
+#######################################################
+###         State Sync Configuration Options        ###
+#######################################################
+
+# The number of concurrent chunk fetchers to run (default: 1).
+chunk_fetchers = "42"
+
+#######################################################
+###         Consensus Configuration Options         ###
+#######################################################
+
+# How much timeout_propose increases with each round
+timeout_propose_delta = "100ms"
+
+# How much the timeout_prevote increases with each round
+timeout_prevote_delta = "100ms"
+
+# How much the timeout_precommit increases with each round
+timeout_precommit_delta = "100ms"
+
+# How many blocks to look back to check existence of the node's consensus votes before joining consensus
+# When non-zero, the node will panic upon restart
+# if the same consensus key was used to sign {double_sign_check_height} last blocks.
+# So, validators should stop the state machine, wait for some blocks, and then restart the state machine to avoid p
+anic.
+double_sign_check_height = 1
+
+#######################################################
+###   Transaction Indexer Configuration Options     ###
+#######################################################
+[tx_index]
+
+indexer = "null"
