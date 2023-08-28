@@ -1,0 +1,13 @@
+#!/bin/bash
+#set -x
+
+until [ -S /dev/shm/blockchain/trpc.socket ]
+do
+    sleep 1
+done
+
+setfacl -d -R -m u::rwX,g::rwX,o::- /dev/shm/blockchain
+chmod -R 2774 /dev/shm/blockchain/
+chown -h -R blockchain:www-data /dev/shm/blockchain
+
+exit 0
