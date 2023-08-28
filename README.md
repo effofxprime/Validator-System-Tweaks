@@ -9,6 +9,17 @@ Google is your friend, a plethora of information about everything here will come
 
 # Instructions
 
+## Linux Kernel
+I am using Ubuntu 22.04 LTS with a Pro subscription.  The Pro subscription is free.  You can have up to 5 servers added.
+https://ubuntu.com/pro
+
+There are some instructions on the page once you sign up to link your server to the subscription.
+Once linked you now have access to the LTS realtime Kernel.  This is beneficial for us because it's supported in the LTS release.
+Enable this by doing
+```bash
+pro enable realtime-kernel
+```
+
 ## sysctl.conf
 After pasting the tweaks into your `/etc/sysctl.conf`, issue the command `sysctl -p` to apply them.
 In your rc.local, add `sysctl -p` on an empty line and save. This ensures they are applied at boot.
