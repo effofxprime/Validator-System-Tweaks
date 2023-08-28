@@ -7,7 +7,9 @@ I highly ***recommend*** that before blinding applying these, as they could utte
 Google is your friend, a plethora of information about everything here will come up on page 1. If you are in need of help still, do not hesitate to submit a question in the Discussions section.
 
 
-## Instructions
+# Instructions
+
+## sysctl.conf
 After pasting the tweaks into your `/etc/sysctl.conf`, issue the command `sysctl -p` to apply them.
 In your rc.local, add `sysctl -p` on an empty line and save. This ensures they are applied at boot.
 
@@ -17,63 +19,24 @@ awk 'BEGIN {OFMT = "%.0f";} /MemTotal/ {print "vm.min_free_kbytes =", $2 * .03;}
 ```
 
 ## rc.local
-
-A few other tweaks can be made and applied at boot using the `rc.local` file.  By default, Ubuntu LTS does not have an rc.local enabled.  Below contains my current `rc.local` which includes a link for instructions on setting up your `rc.local` as well as the contents of what you need to have in your `rc-local.service` file
-
-```bash
-#!/bin/bash
-#set -x
-# https://www.linuxbabe.com/linux-server/how-to-enable-etcrc-local-with-systemd
-############## Service file start ####################
-#[Unit]
-# Description=/etc/rc.local Compatibility
-# ConditionPathExists=/etc/rc.local
-#
-#[Service]
-# Type=forking
-# ExecStart=/etc/rc.local start
-# TimeoutSec=0
-# StandardOutput=tty
-# RemainAfterExit=yes
-# SysVStartPriority=99
-#
-#[Install]
-# WantedBy=multi-user.target
-############## Service file end ####################
-
-# Increase your transaction queue length
-# and increase the eth device tx/rx buffers
-# Does not work with linode para-virt, must use full-virt
-ip link set dev enp1s0f0 txqueuelen 9000
-ip link set dev enp1s0f1 txqueuelen 9000
-
-ethtool -G enp1s0f0 tx 4096 rx 4096
-ethtool -G enp1s0f1 tx 4096 rx 4096
-
-#Set Read ahead
-for i in {0..4}
-do
-        blockdev --setra 4096 /dev/nvme${i}n1
-
-done
-
-# Ensure sysctl settings are set
-sysctl -p
-
-# Set CPU performance
-for i in {0..71}
-do
-    echo -n "performance" > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_governor
-    # Change all CPU's to 'performance'
-    echo -n 2 > /sys/devices/system/cpu/cpu$i/power/energy_perf_bias
-    # Change to 0-4, 0=Performance and 4=Balanced-Performance
-done
-
-exit 0
-```
+A few other tweaks can be made and applied at boot using the `rc.local` file.  By default, Ubuntu LTS does not have an rc.local enabled.  My current `rc.local` which includes a link for instructions on setting up your `rc.local` as well as the contents of what you need to have in your `rc-local.service` file
 
 You will need to modify a few things here:
 - My eth device is labeled `enpls0fN` where N={1,2..N}.  You will need to change this to match your eth device names
 - My drive names all start with `nvme`.  Yours may be different as well as the number of them. If you have more than four drives, you will want to change `{0..4}` and change `4` to the number of drives you have. Secondly change `nvme${i}n1` to match your device names. For example, if your devices are /dev/{sda1,sdb1,sdc1} then you would modify the end of the command to `/dev/sd*${i}`.  Setting the read ahead on the top level device propigates it down to the lowest sub-device(all your partitions/extend partitions/lvm/mdadm).
 - First figure out how many CPU's you have. This should start at 0, not 1. Mine are `{0..71}`, so if you have 32 cpus you would need `{0..31}`.
 
+## service file template
+You will need to change a few things here. I've labeled items needing to be changed with `blockchain`.  As well as heavy comments.
+- Description
+- User/Group
+- ExecStart, location, daemon name
+- CPUAffinity (how many CPUs do you want this service to be restricted to use?)
+- IOSchedulingPriority:  1-highest, 7-lowest
+- Nice
+
+### Optional
+I use sockets over TCP. I store the sockets into shared memory `/dev/shm`.  You can find out how to set your `/etc/fstab` to mount a shared memory drive.
+My `ExecStart{Pre,Post}` execute a script to help ensure permissions are set appropriately and that the socket is properly taken care of.
+`Sockets` is required if you use them, as it allows systemd to know the process creates it and how it needs to handle it given certain situations.
+Setting the group to `www-data` is more for an RPC node using sockets.  This is so nginx can access the socket for a reverse proxy.
