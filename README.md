@@ -1,4 +1,4 @@
-# Validator System Tweaks
+# Validator-sysctl-settings
 These are my current sysctl.conf tweaks.
 
 **I offer ***NO*** guarantee that these will work for you. You assume all risks using these**
@@ -6,12 +6,11 @@ These are my current sysctl.conf tweaks.
 I highly ***recommend*** that before blinding applying these, as they could utterly fuck your server up, you need to ***research them*** and ensure you will be configuring them properly for your server.
 Google is your friend, a plethora of information about everything here will come up on page 1. If you are in need of help still, do not hesitate to submit a question in the Discussions section.
 
-- [Validator System Tweaks](#validator-system-tweaks)
+- [Validator-sysctl-settings](#validator-sysctl-settings)
 - [Instructions](#instructions)
   - [Linux Kernel](#linux-kernel)
   - [Grub](#grub)
   - [sysctl.conf](#sysctlconf)
-  - [system.conf](#systemconf)
   - [rc.local](#rclocal)
   - [service file template](#service-file-template)
     - [Optional](#optional)
@@ -34,7 +33,7 @@ pro enable realtime-kernel
 Once you have the realtime-kernel installed, you can update your grub config to take more advantage of the kernel.
 We need to modify the parameter starting with `GRUB_CMDLINE_LINUX_DEFAULT=`
 If you have settings in there already, put these at the end. Keeping a space between settings.
-```conf
+```bash
 skew_tick=1 rcu_nocb_poll rcu_nocbs=1-35,37-71 nohz=on nohz_full=1-35,37-71 kthread_cpus=0,36 irqaffinity=0,36 isolcpus=managed_irq,domain,1-35,37-71 intel_pstate=disable nosoftlockup tsc=nowatchdog
 ```
 
@@ -64,14 +63,6 @@ awk 'BEGIN {OFMT = "%.0f";} /MemTotal/ {print "vm.min_free_kbytes =", $2 * .03;}
 I took this result and multiplied it by 5 and use that for my setting.
 
 There are quite a few items commented out. Those do not exist on my system but may on yours.  You can always check using the `sysctl` command.
-
-## system.conf
-For a system wide configuration, we want to edit the `/etc/systemd/system.conf`.
-```conf
-IOSchedulingClass=realtime
-IOSchedulingPriority=4
-CPUAffinity=1-35,37-71
-```
 
 ## rc.local
 A few other tweaks can be made and applied at boot using the `rc.local` file.  By default, Ubuntu LTS does not have an rc.local enabled.  My current `rc.local` which includes a link for instructions on setting up your `rc.local` as well as the contents of what you need to have in your `rc-local.service` file
