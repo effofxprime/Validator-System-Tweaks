@@ -50,3 +50,17 @@ After downloading them, rename them to be more descriptive of what blockchain th
 Then uncomment the lines starting with:
 - ExecStart{Pre,Post}
 - Sockets
+
+## Blockchain config's
+I've added comments in the file to show which config file I am speaking about.  I've removed sections that aren't relevant to the tweaking they should not be removed.  Just alter the single config line setting.
+
+
+In short, the recommendation is to turn off everything a validator doesn't need.
+- Reduce timeouts/threshholds/deltas
+- Turn off indexing
+- Increase allowed send/receive rates
+- State Sync chunk quantity
+- No index
+- !!!!!!!Double sign check height!!!!!!!!
+
+There are a few others.  Check out the discussions and share your experiences so we can improve upon them for everyone.
