@@ -1,4 +1,4 @@
-# Validator-sysctl-settings
+# Validator System Tweaks
 These are my current sysctl.conf tweaks.
 
 **I offer ***NO*** guarantee that these will work for you. You assume all risks using these**
@@ -6,7 +6,7 @@ These are my current sysctl.conf tweaks.
 I highly ***recommend*** that before blinding applying these, as they could utterly fuck your server up, you need to ***research them*** and ensure you will be configuring them properly for your server.
 Google is your friend, a plethora of information about everything here will come up on page 1. If you are in need of help still, do not hesitate to submit a question in the Discussions section.
 
-- [Validator-sysctl-settings](#validator-sysctl-settings)
+- [Validator System Tweaks](#validator-system-tweaks)
 - [Instructions](#instructions)
   - [Linux Kernel](#linux-kernel)
   - [Grub](#grub)
