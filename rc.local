@@ -21,11 +21,14 @@
 # Increase your transaction queue length
 # and increase the eth device tx/rx buffers
 # Does not work with linode para-virt, must use full-virt
+
 ip link set dev enp1s0f0 txqueuelen 9000
 ip link set dev enp1s0f1 txqueuelen 9000
 
 ethtool -G enp1s0f0 tx 4096 rx 4096
 ethtool -G enp1s0f1 tx 4096 rx 4096
+ethtool -C enp1s0f0 rx-usecs 0
+ethtool -C enp1s0f0 tx-usecs 0
 
 #Set Read ahead
 for i in {0..4}; do
@@ -34,7 +37,6 @@ for i in {0..4}; do
 done
 
 # Ensure sysctl settings are set
-sysctl -p
 
 # Set CPU performance
 for i in {0..71}; do
@@ -43,5 +45,7 @@ for i in {0..71}; do
     echo -n 0 >/sys/devices/system/cpu/cpu$i/power/energy_perf_bias
     # Change to 0-4, 0=Performance and 4=Balanced-Performance
 done
+
+sysctl -p
 
 exit 0
