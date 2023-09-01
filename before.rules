@@ -1,0 +1,61 @@
+# quickly process packets for which we already have a connection
+-A ufw-before-input -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A ufw-before-output -m state --state NEW,ESTABLISHED,RELATED -j ACCEPT
+-A ufw-before-forward -m state --state ESTABLISHED,RELATED -j ACCEPT
+-A ufw-before-input -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+-A ufw-before-output -m conntrack --ctstate NEW,RELATED,ESTABLISHED -j ACCEPT
+-A ufw-before-forward -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+# ,SYN_RECV,FIN_WAIT,LAST_ACK
+
+# Drop Various Attacks
+-A ufw-before-input -p tcp --tcp-flags FIN,SYN FIN,SYN -j DROP
+-A ufw-before-input -p tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG FIN -j DROP
+-A ufw-before-input -p tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG FIN,PSH,URG -j REJECT
+-A ufw-before-input -p tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG FIN,SYN,RST,PSH,ACK,URG -j DROP
+-A ufw-before-input -p tcp --tcp-flags FIN,SYN,RST,PSH,ACK,URG NONE -j DROP
+-A ufw-before-input -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+
+# Drop Fragments
+-A ufw-before-input -f -j DROP
+
+# drop INVALID packets (logs these in loglevel medium and higher)
+-A ufw-before-input -m conntrack --ctstate INVALID -j ufw-logging-deny
+-A ufw-before-input -m conntrack --ctstate INVALID -j REJECT
+-A ufw-before-input -m state --state INVALID -j REJECT
+-A ufw-before-output -m conntrack --ctstate INVALID -j ufw-logging-deny
+-A ufw-before-output -m conntrack --ctstate INVALID -j REJECT
+-A ufw-before-output -m state --state INVALID -j REJECT
+
+# Drop Null Packets
+-A ufw-before-input -p tcp --tcp-flags ALL NONE -j DROP
+
+# Drop excessive RST Packets to avoid Smurf-Attacks
+-A ufw-before-input -p tcp -m tcp --tcp-flags RST RST -m limit --limit 20/second --limit-burst 5 -j ACCEPT
+
+## Drop Smurf-Attacks
+# Smurf-Attacks send a large number of ICMP "echo broadcast" packets with a spoofed source IP-address being the target's IP-address. The machines on the network recieve this broadcast message and reply to the target with "echo reply" packets. One way to block this attack is to block all the ICMP packets. However, if that cannot be done, then a limit may be applied to the ICMP packets allowed.
+-A ufw-before-input -p icmp -m icmp --icmp-type address-mask-request -j DROP
+-A ufw-before-input -p icmp -m icmp --icmp-type timestamp-request -j DROP
+-A ufw-before-input -p icmp -m limit --limit 2/second --limit-burst 2 -j ACCEPT
+-A ufw-before-input -p icmp -j DROP
+
+# Drop Spank DoS Attacks
+# Computers answer TCP packets that are coming from a multicast-address. This can be used for the Spank DoS Attack or stealth-scans.
+-A ufw-before-input -s 224.0.0.0/4 -j DROP
+-A ufw-before-input -d 224.0.0.0/4 -j DROP
+-A ufw-before-input -s 240.0.0.0/5 -j DROP
+-A ufw-before-input -d 240.0.0.0/5 -j DROP
+-A ufw-before-input -s 0.0.0.0/8 -j DROP
+-A ufw-before-input -d 0.0.0.0/8 -j DROP
+-A ufw-before-input -d 239.255.255.0/24 -j DROP
+-A ufw-before-input -d 255.255.255.255 -j DROP
+
+# Drop SYN Flood Packets
+# This is a type of DOS (Denial Of Service) attack.
+-A ufw-before-input -p tcp -m state --state NEW -m limit --limit 50/second --limit-burst 5 -j ACCEPT
+-A ufw-before-input -p tcp -m state --state NEW -j REJECT
+
+# Drop XMAS Packets
+# A Christmas-Tree Packet is a packet that has all flags of any protocol set. The FIN, URG, and PSH bits in the TCP header are set. This packet is called an "Xmas Tree" packet because all the fields of header are "lightened up".
+-A ufw-before-input -p tcp --tcp-flags ALL FIN,PSH,URG -j REJECT
+-A ufw-before-input -p tcp --tcp-flags ALL ALL -j DROP
